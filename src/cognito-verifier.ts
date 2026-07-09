@@ -321,7 +321,6 @@ export class CognitoJwtVerifier<
    * @returns The issuer and JWKS URI for the User Pool
    */
   public static buildGlobalIssuer(userPoolId: string, userPoolRegion?: string) {
-    // TODO: Configure w/ Region Property
     const region = CognitoJwtVerifier.parseUserPoolRegion(userPoolId, userPoolRegion);
 
     const issuer = `https://issuer-cognito-idp.${region}.amazonaws.com/${userPoolId}`;
@@ -340,7 +339,6 @@ export class CognitoJwtVerifier<
    * @returns The issuer and JWKS URI for the User Pool
    */
   public static buildRegionalIssuer(userPoolId: string, userPoolRegion?: string) {
-    // TODO: Configure w/ Region Property
     const region = CognitoJwtVerifier.parseUserPoolRegion(userPoolId, userPoolRegion);
 
     const issuer = `https://cognito-idp.${region}.amazonaws.com/${userPoolId}`;
