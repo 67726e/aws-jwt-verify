@@ -712,4 +712,46 @@ describe("unit tests cognito verifier", () => {
       });
     });
   });
+
+  describe("CognitoJwtVerifier with Multi-Region Replication User Pool", () => {
+    describe("verify", () => {
+      test("happy path", async () => {
+        const userPoolId = "us-east-1_123456";
+        const userPoolRegion = "us-west-2";
+        const { issuer } = CognitoJwtVerifier.parseUserPoolId(userPoolId, undefined, userPoolRegion);
+        expect(issuer).toBe("https://cognito-idp.us-west-2.amazonaws.com/us-east-1_123456");
+        const signedJwt = signJwt(
+          { kid: keypair.jwk.kid },
+          {
+            hello: "world",
+            iss: issuer,
+            token_use: "access",
+          },
+          keypair.privateKey
+        );
+        const decomposedJwt = decomposeUnverifiedJwt(signedJwt);
+        const customJwtCheck = jest.fn();
+        const cognitoVerifier = CognitoJwtVerifier.create({
+          userPoolId,
+          userPoolRegion,
+          customJwtCheck,
+        });
+        cognitoVerifier.cacheJwks(keypair.jwks, undefined, userPoolRegion);
+        expect.assertions(3);
+        expect(
+          await cognitoVerifier.verify(signedJwt, {
+            clientId: null,
+            tokenUse: null,
+            groups: null,
+            scope: null,
+          })
+        ).toMatchObject({ hello: "world" });
+        expect(customJwtCheck).toHaveBeenCalledWith({
+          header: decomposedJwt.header,
+          payload: decomposedJwt.payload,
+          jwk: keypair.jwk,
+        });
+      });
+    });
+  });
 });
